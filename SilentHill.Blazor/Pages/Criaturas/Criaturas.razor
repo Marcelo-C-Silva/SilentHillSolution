@@ -1,0 +1,89 @@
+﻿@page "/bestiario"
+@using SilentHill.Shared
+@inject HttpClient Http
+
+<PageTitle>Silent Hill - Bestiário</PageTitle>
+
+<div class="container mt-5" style="font-family: 'Courier New', Courier, monospace;">
+    <h1 class="text-danger border-bottom border-danger pb-2">AVISTAMENTOS NA NÉVOA</h1>
+    <p class="text-muted text-uppercase small">Dados coletados diretamente da API de Silent Hill...</p>
+
+    @if (listaCriaturas == null)
+    {
+        <div class="d-flex align-items-center text-danger">
+            <strong>O rádio está emitindo estática (Carregando)...</strong>
+            <div class="spinner-border ms-auto text-danger" role="status" aria-hidden="true"></div>
+        </div>
+    }
+    else if (!listaCriaturas.Any())
+    {
+        <div class="alert alert-warning bg-dark text-warning border-warning">
+            A cidade parece vazia... Nenhuma criatura detectada pelo radar.
+        </div>
+    }
+    else
+    {
+<div class="row">
+    @foreach (var criatura in listaCriaturas)
+    {
+        <div class="col-12 col-md-6 mb-4">
+            <div class="card bg-black text-light border border-secondary" style="max-width: 740px; box-shadow: 0 0 10px rgba(255,0,0,0.2);">
+                <div class="row g-0 align-items-center">
+                    
+                    <div class="col-md-5">
+                        @if (!string.IsNullOrEmpty(criatura.ImagemUrl))
+                        {
+                            <img src="@criatura.ImagemUrl" class="img-fluid rounded-end" alt="@criatura.Nome" style=" height: 220px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="bg-dark text-muted d-flex align-items-center justify-content-center rounded-start" style="height: 220px;">
+                                <span class="small">SEM SINAL...</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="card-body">
+                            <h3 class="card-title text-danger font-weight-bold mb-1">@criatura.Nome</h3>
+                            <p class="card-text mb-2"><small class="text-muted text-uppercase">Origem: @criatura.JogoOrigem</small></p>
+                            
+                            <p class="card-text text-justify" style="color: #bcbcbc; font-size: 0.95rem;">
+                                @criatura.Descricao
+                            </p>
+                            
+                            <div class="mt-3">
+                                <span class="badge bg-danger p-2 text-uppercase">
+                                    Perigo: 
+                                    @for (int i = 0; i < criatura.NivelPerigo; i++)
+                                    {
+                                        <i class="fa-solid fa-skull mx-1"></i>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    }
+</div>
+    }
+</div>
+
+@code {
+    private List<CriaturaDto>? listaCriaturas;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            listaCriaturas = await Http.GetFromJsonAsync<List<CriaturaDto>>("api/criaturas");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao sintonizar rádio: {ex.Message}");
+        }
+    }
+}
