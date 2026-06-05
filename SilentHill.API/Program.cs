@@ -1,41 +1,33 @@
+using MediatR;
+using SilentHill.Application.Criaturas.Queries;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// 1. Registrar o MediatR na API e dizer para ele procurar os Handlers no projeto Application
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(GetCriaturasQuery).Assembly));
+
+// 2. Configurar o CORS (Crucial para o Blazor conseguir acessar a API sem bloqueio do navegador)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BlazorPolicy", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Ativar o CORS antes das rotas
+app.UseCors("BlazorPolicy");
 
-app.UseHttpsRedirection();
-
-var summaries = new[]
+// 3. O nosso Endpoint de Silent Hill usando o MediatR
+app.MapGet("/api/criaturas", async (IMediator mediator) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    // A API simplesmente recebe a requisição e despacha a Query pelo MediatR
+    var resultado = await mediator.Send(new GetCriaturasQuery());
+    return Results.Ok(resultado);
+});
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
