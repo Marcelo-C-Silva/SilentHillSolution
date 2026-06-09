@@ -1,0 +1,24 @@
+
+
+services:
+  silenthill-api:
+    image: silenthill-api:latest
+    container_name: silenthill-api-container
+    build:
+      context: . 
+      dockerfile: SilentHill.API/Dockerfile
+    ports:
+      - "5235:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  silenthill-blazor:
+    image: silenthill-blazor:latest
+    container_name: silenthill-blazor-container
+    build:
+      context: .
+      dockerfile: SilentHill.Blazor/Dockerfile
+    ports:
+      - "5010:80" 
+    depends_on:
+      - silenthill-api 
