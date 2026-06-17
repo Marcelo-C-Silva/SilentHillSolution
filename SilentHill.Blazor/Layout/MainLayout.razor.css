@@ -1,77 +1,77 @@
-.page {
+.sh-layout {
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    background: linear-gradient(180deg, var(--sh-dark) 0%, var(--sh-dark-2) 50%, #0d0d0d 100%);
 }
 
-main {
+.sh-fog {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(139, 0, 0, 0.06) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 50% at 80% 60%, rgba(100, 100, 100, 0.04) 0%, transparent 70%),
+        radial-gradient(ellipse 70% 40% at 50% 20%, rgba(80, 80, 80, 0.03) 0%, transparent 60%);
+    animation: fogShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes fogShift {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-2%, 1%) scale(1.05);
+        opacity: 0.6;
+    }
+}
+
+.sh-main {
     flex: 1;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem 2rem 1rem;
 }
 
-.sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+.sh-content {
+    animation: fadeIn 0.5s ease-out;
 }
 
-.top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
     }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
-@media (min-width: 641px) {
-    .page {
-        flex-direction: row;
-    }
+.sh-footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--sh-text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border-top: 1px solid var(--sh-border);
+    background: rgba(0, 0, 0, 0.3);
+}
 
-    .sidebar {
-        width: 250px;
-        height: 100vh;
-        position: sticky;
-        top: 0;
-    }
-
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
-    }
-
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+@media (max-width: 768px) {
+    .sh-main {
+        padding: 1rem 1rem 0.5rem;
     }
 }

@@ -1,16 +1,17 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
+<div class="sh-layout">
+    <div class="sh-fog"></div>
 
-        <article class="content px-4">
+    <NavMenu />
+
+    <main class="sh-main">
+        <div class="sh-content">
             @Body
-        </article>
+        </div>
     </main>
+
+    <footer class="sh-footer">
+        <span> Silent Hill Bestiário — Os horrores da névoa te aguardam</span>
+    </footer>
 </div>
