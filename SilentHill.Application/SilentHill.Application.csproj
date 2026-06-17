@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SilentHill.Domain\SilentHill.Domain.csproj" />
     <ProjectReference Include="..\SilentHill.Shared\SilentHill.Shared.csproj" />
   </ItemGroup>
 

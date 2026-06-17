@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/Blazor%20WASM-9.0-512BD4?style=for-the-badge&logo=blazor&logoColor=white" alt="Blazor WASM" />
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Compose" />
   <img src="https://img.shields.io/badge/MediatR-14.1-FF2D20?style=for-the-badge" alt="MediatR" />
+  <img src="https://img.shields.io/badge/EF%20Core%20SQLite-9.0-003B57?style=for-the-badge&logo=sqlite&logoColor=white" alt="EF Core SQLite" />
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="MIT License" />
   <br><br>
 </div>
@@ -12,7 +13,7 @@
 
 > *"Na névoa, os monstros são apenas o começo..."*
 
-Aplicação **Blazor WebAssembly** que consome uma **API REST** para exibir um bestiário interativo das criaturas da franquia *Silent Hill*. Dados servidos via `GET /api/criaturas` com arquitetura **Clean Architecture** e **MediatR** (CQRS).
+Aplicação **Blazor WebAssembly** que consome uma **API REST** para exibir um bestiário interativo das criaturas da franquia *Silent Hill*. Dados persistidos em **SQLite** com **EF Core**, servidos via endpoints REST com arquitetura **Clean Architecture** + **CQRS** (MediatR).
 
 ---
 
@@ -20,17 +21,22 @@ Aplicação **Blazor WebAssembly** que consome uma **API REST** para exibir um b
 
 ```
 SilentHillSolution/
-├── SilentHill.API/            # API REST (ASP.NET Core 9)
-│   └── GET /api/criaturas     # Endpoint principal
-├── SilentHill.Blazor/         # Frontend Blazor WebAssembly
+├── SilentHill.API/              # API REST (ASP.NET Core 9)
+│   ├── GET  /api/criaturas      # Lista todas
+│   └── POST /api/criaturas      # Cria nova
+├── SilentHill.Blazor/           # Frontend Blazor WebAssembly
 │   └── Páginas: Home, Bestiário
-├── SilentHill.Application/    # Casos de uso (CQRS / MediatR)
-├── SilentHill.Domain/         # Entidades do domínio
-├── SilentHill.Infrastructure/ # Acesso a dados / repositórios
-├── SilentHill.Shared/         # DTOs compartilhados (CriaturaDto)
-├── SilentHill.Docker/         # Wrapper .NET para docker compose
-├── docker-compose.yml         # Orquestração API + Blazor
-└── SilentHill.sln             # Solução do Visual Studio
+├── SilentHill.Application/      # Casos de uso (CQRS / MediatR)
+│   ├── Criaturas/Queries/       # Consultas
+│   └── Criaturas/Commands/      # Comandos
+├── SilentHill.Domain/           # Entidades do domínio (Criatura)
+├── SilentHill.Infrastructure/   # Persistência (EF Core + SQLite)
+│   ├── Persistence/             # AppDbContext + Seed
+│   └── Repositories/            # Implementações
+├── SilentHill.Shared/           # DTOs compartilhados (CriaturaDto)
+├── SilentHill.Docker/           # Wrapper .NET para docker compose
+├── docker-compose.yml           # Orquestração API + Blazor
+└── SilentHill.sln               # Solução do Visual Studio
 ```
 
 ### 🧩 Tecnologias
@@ -39,6 +45,8 @@ SilentHillSolution/
 |------------|-------|
 | Frontend   | Blazor WebAssembly (.NET 9) |
 | Backend    | ASP.NET Core 9 + MediatR 14.1 |
+| Banco      | SQLite via EF Core 9 |
+| Persistência | Volume Docker `sqlite_data` |
 | Padrão     | Clean Architecture + CQRS |
 | Container  | Docker Compose (Nginx + ASP.NET) |
 | Build      | .NET SDK 9.0 |
@@ -111,28 +119,43 @@ Layout **dark mode** com temática Silent Hill:
 
 Retorna todas as criaturas do bestiário.
 
-**Resposta:**
 ```json
 [
   {
     "id": 1,
     "nome": "Pyramid Head",
-    "descricao": "Uma figura misteriosa usando um capacete metálico em forma de pirâmide...",
+    "descricao": "O executor de Silent Hill 2...",
     "jogoOrigem": "Silent Hill 2",
-    "imagemUrl": "https://exemplo.com/pyramid-head.jpg",
+    "imagemUrl": "https://...",
     "nivelPerigo": 5
   }
 ]
 ```
 
-**Parâmetros da criatura:**
+### `POST /api/criaturas`
+
+Cria uma nova criatura.
+
+```json
+{
+  "nome": "Lisa Garland",
+  "descricao": "Uma enfermeira atormentada...",
+  "jogoOrigem": "Silent Hill 1",
+  "imagemUrl": "",
+  "nivelPerigo": 2
+}
+```
+
+**Resposta:** `201 Created` com a criatura criada (incluindo `id` gerado).
+
+### Modelo
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `id` | int | Identificador único |
+| `id` | int | Identificador único (auto-incremento) |
 | `nome` | string | Nome da criatura |
 | `descricao` | string | Descrição detalhada |
-| `jogoOrigem` | string | Jogo de origem da criatura |
+| `jogoOrigem` | string | Jogo de origem |
 | `imagemUrl` | string | URL da imagem |
 | `nivelPerigo` | int | Nível de perigo (1–5) |
 
@@ -140,11 +163,24 @@ Retorna todas as criaturas do bestiário.
 
 ---
 
+## 🗄️ Banco de Dados
+
+**SQLite** com **EF Core 9**. O banco é criado automaticamente na primeira execução via `EnsureCreated()`, com seed data de 2 criaturas (Pyramid Head e Bubble Head Nurse).
+
+| Ambiente | Arquivo |
+|----------|---------|
+| Local (dev) | `SilentHill.API/silenthill.db` |
+| Docker | Volume `sqlite_data` em `/data/silenthill.db` |
+
+> Para resetar o banco, basta deletar o arquivo `silenthill.db` (local) ou o volume Docker (`docker compose down -v`).
+
+---
+
 ## ⚙️ Configuração
 
-### URL da API
+### URL da API (Blazor)
 
-No arquivo `SilentHill.Blazor/wwwroot/appsettings.json`:
+`SilentHill.Blazor/wwwroot/appsettings.json`:
 
 ```json
 {
@@ -152,7 +188,19 @@ No arquivo `SilentHill.Blazor/wwwroot/appsettings.json`:
 }
 ```
 
-> Para mudar o ambiente (ex: Docker), crie um `appsettings.Docker.json` ou altere o valor diretamente.
+### Connection String (API)
+
+`SilentHill.API/appsettings.json`:
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultDb": "Data Source=silenthill.db"
+  }
+}
+```
+
+No Docker, a connection string é sobrescrita via variável de ambiente (`ConnectionStrings__DefaultDb`) para o caminho do volume.
 
 ---
 

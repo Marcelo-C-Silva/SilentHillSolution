@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.16" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SilentHill.Domain\SilentHill.Domain.csproj" />
+    <ProjectReference Include="..\SilentHill.Application\SilentHill.Application.csproj" />
+  </ItemGroup>
+
 </Project>

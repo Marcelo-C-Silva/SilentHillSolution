@@ -1,5 +1,3 @@
-
-
 services:
   silenthill-api:
     image: silenthill-api:latest
@@ -11,6 +9,9 @@ services:
       - "5235:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultDb=Data Source=/data/silenthill.db
+    volumes:
+      - sqlite_data:/data
 
   silenthill-blazor:
     image: silenthill-blazor:latest
@@ -21,4 +22,7 @@ services:
     ports:
       - "5010:80" 
     depends_on:
-      - silenthill-api 
+      - silenthill-api
+
+volumes:
+  sqlite_data:
